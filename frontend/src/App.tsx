@@ -1,26 +1,8 @@
 import { Shield, MessageCircle, Lock } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Link } from "react-router-dom";
+
 
 const App = () => {
-  const [greeting, setGreeting] = useState(''); // State for the greeting message
-
-  useEffect(() => {
-    // Function to fetch greeting from the API
-    const fetchGreeting = async () => {
-      try {
-        const response = await fetch('http://localhost:8080/greet?name=Alice');
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const data = await response.text(); // or response.json() if the API returns JSON
-        setGreeting(data);
-      } catch (error) {
-        console.error('There was a problem with the fetch operation:', error);
-      }
-    };
-
-    fetchGreeting(); // Call the fetch function
-  }, []); // Empty dependency array ensures this effect runs only once
 
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900">
@@ -41,9 +23,9 @@ const App = () => {
         <section className="text-center mb-12">
           <h2 className="text-4xl font-bold mb-4">Secure Messaging for Everyone</h2>
           <p className="text-xl mb-6">End-to-end encryption keeps your conversations private and secure.</p>
-          <button className="bg-blue-600 text-white px-6 py-2 rounded-full text-lg hover:bg-blue-700 transition-colors">
+          <Link to="/login" className="bg-blue-600 text-white px-6 py-2 rounded text-lg hover:bg-blue-700 transition-colors">
             Get Started
-          </button>
+          </Link>
         </section>
 
         <section id="features" className="mb-12">
