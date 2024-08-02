@@ -1,6 +1,27 @@
 import { Shield, MessageCircle, Lock } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 const App = () => {
+  const [greeting, setGreeting] = useState(''); // State for the greeting message
+
+  useEffect(() => {
+    // Function to fetch greeting from the API
+    const fetchGreeting = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/greet?name=Alice');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.text(); // or response.json() if the API returns JSON
+        setGreeting(data);
+      } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+      }
+    };
+
+    fetchGreeting(); // Call the fetch function
+  }, []); // Empty dependency array ensures this effect runs only once
+
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900">
       <header className="bg-blue-600 text-white p-4">
