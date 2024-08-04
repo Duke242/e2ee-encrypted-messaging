@@ -1,10 +1,13 @@
 package com.example.demo.profile;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class ProfileService {
@@ -27,4 +30,23 @@ public class ProfileService {
     }
     profileRepository.save(profile);
   }
+
+  public void deleteProfile(Long profileId) {
+    boolean exists = profileRepository.existsById(profileId);
+    if (!exists) {
+      throw new IllegalStateException("Profile does not exist");
+    }
+  }
+
+  @Transactional
+  public void updateProfile(Long profileId, String email) {
+    Profile profile = profileRepository.findById(profileId)
+        .orElseThrow(() -> new IllegalStateException("profile does not exist"));
+
+    if (email != null && email.length() > 0 && !Objects
+        .equals(profile.getEmail(), email)) {
+      profile.setEmail(email);
+    }
+  }
+
 }
