@@ -6,7 +6,6 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import jakarta.transaction.Transactional;
 
 @Service
@@ -24,10 +23,12 @@ public class ProfileService {
   }
 
   public void addProfile(Profile profile) {
+
     Optional<Profile> profileOptional = profileRepository.findProfileByEmail(profile.getEmail());
     if (profileOptional.isPresent()) {
       throw new IllegalStateException("Email already exists");
     }
+
     profileRepository.save(profile);
   }
 
@@ -36,17 +37,21 @@ public class ProfileService {
     if (!exists) {
       throw new IllegalStateException("Profile does not exist");
     }
+
+    profileRepository.deleteById(profileId);
   }
 
   @Transactional
   public void updateProfile(Long profileId, String email) {
     Profile profile = profileRepository.findById(profileId)
-        .orElseThrow(() -> new IllegalStateException("profile does not exist"));
+        .orElseThrow(() -> new IllegalStateException("Profile does not exist"));
 
-    if (email != null && email.length() > 0 && !Objects
-        .equals(profile.getEmail(), email)) {
+    if (email != null && email.length() > 0 && !Objects.equals(profile.getEmail(), email)) {
+      Optional<Profile> existingProfile = profileRepository.findProfileByEmail(email);
+      if (existingProfile.isPresent()) {
+        throw new IllegalStateException("Email already exists");
+      }
       profile.setEmail(email);
     }
   }
-
 }

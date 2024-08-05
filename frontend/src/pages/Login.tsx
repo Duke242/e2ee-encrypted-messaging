@@ -7,8 +7,13 @@ function Login() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically handle the login logic
-    console.log('Login attempted with:', { email, password });
+    fetch('http://localhost:8080/api/profiles', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    })
   };
 
   return (
@@ -16,7 +21,7 @@ function Login() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <Lock className="mx-auto text-blue-600 w-12 h-12" />
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Log in to SecureChat
+          Log in / Sign in to SecureChat
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
           Secure messaging starts here
