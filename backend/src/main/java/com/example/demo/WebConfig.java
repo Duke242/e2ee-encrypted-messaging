@@ -1,4 +1,4 @@
-package com.example.demo; // Update to match your package structure
+package com.example.demo;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;

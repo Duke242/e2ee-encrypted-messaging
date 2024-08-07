@@ -24,8 +24,7 @@ public class MessageService {
     Profile recipient = profileRepository.findById(recipientId)
         .orElseThrow(() -> new IllegalArgumentException("Recipient not found"));
 
-    // TODO: Implement encryption using Signal Protocol
-    boolean isEncrypted = false; // Placeholder
+    boolean isEncrypted = false;
 
     Message message = new Message(sender, recipient, content, isEncrypted);
     return messageRepository.save(message);
