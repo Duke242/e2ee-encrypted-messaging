@@ -5,6 +5,7 @@ import App from './App'
 import './index.css'
 import ErrorPage from './pages/ErrorPage'
 import Login from './pages/Login'
+import Signup from './pages/SignUp'
 
 const router = createBrowserRouter([{
   path: '/',
@@ -13,6 +14,9 @@ const router = createBrowserRouter([{
 }, {
   path: '/login',
   element: <Login/>
+}, {
+  path: '/signup',
+  element: <Signup/>
 }])
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
