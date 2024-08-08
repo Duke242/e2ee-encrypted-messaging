@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import { Lock } from 'lucide-react';
+import { Link, redirect } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
+
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,11 +28,9 @@ function Login() {
       }
       
       const data = await response.json();
-      // Store the token in localStorage or a more secure storage method
       localStorage.setItem('token', data.token);
-      // Redirect to the main app or dashboard
-      // You might want to use React Router for this in a real app
-      console.log('Login successful', data);
+      console.log('navigate to dashboard');
+      navigate('/dashboard');
     } catch (err) {
       setError('Invalid email or password');
       console.error('Login error:', err);
@@ -112,9 +115,9 @@ function Login() {
 
             <div className="mt-6">
               <div className="text-sm text-center">
-                <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+                <Link to="/signup" className="font-medium text-blue-600 hover:text-blue-500">
                   Don't have an account? Sign up
-                </a>
+                </Link>
               </div>
             </div>
           </div>
