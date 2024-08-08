@@ -12,7 +12,7 @@ const Dashboard = () => {
             <ul className="flex space-x-4">
               <li><Link to="/dashboard" className="text-white hover:text-white hover:underline">Dashboard</Link></li>
               <li><Link to="/profile" className="text-white hover:text-white hover:underline">Profile</Link></li>
-              <li><a href="#logout" onClick={() => localStorage.setItem('token','')} className="text-white hover:text-white hover:underline">Logout</a></li>
+              <li><a href="#logout" onClick={() => { localStorage.setItem('token',''); window.location.reload(); }} className="text-white hover:text-white hover:underline">Logout</a></li>
             </ul>
           </nav>
         </div>
@@ -21,7 +21,7 @@ const Dashboard = () => {
       <main className="w-full mx-auto mt-8 px-4">
         <section className="text-center mb-12">
           <h2 className="text-4xl font-bold mb-4">Welcome Back!</h2>
-          <p className="text-xl mb-6">Here’s a summary of your recent activity.</p>
+          <p className="text-xl mb-6">Here&apos;s a summary of your recent activity.</p>
         </section>
 
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">

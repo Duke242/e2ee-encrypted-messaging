@@ -52,7 +52,7 @@ const AppRouter = () => {
       router={createBrowserRouter([
         {
           path: '/',
-          element: <App />,
+          element: isAuthenticated ? <Navigate to="/dashboard" /> : <App />,
           errorElement: <ErrorPage />
         },
         {

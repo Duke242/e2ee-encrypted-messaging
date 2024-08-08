@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Lock } from 'lucide-react';
-import { Link, redirect } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useNavigate } from 'react-router-dom';
 
 
@@ -31,6 +31,7 @@ function Login() {
       localStorage.setItem('token', data.token);
       console.log('navigate to dashboard');
       navigate('/dashboard');
+      window.location.reload();
     } catch (err) {
       setError('Invalid email or password');
       console.error('Login error:', err);
