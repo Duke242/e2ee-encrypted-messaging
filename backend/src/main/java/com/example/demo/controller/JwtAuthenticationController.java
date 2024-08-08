@@ -83,6 +83,25 @@ public class JwtAuthenticationController {
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
 
+    @PostMapping("/verify")
+    public ResponseEntity<String> verifyToken(@RequestHeader("Authorization") String token) {
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        } else {
+            return ResponseEntity.badRequest().body("Invalid token format");
+        }
+
+        try {
+            if (jwtTokenUtil.validateJwtToken(token)) {
+                return ResponseEntity.ok("Token is valid");
+            } else {
+                return ResponseEntity.status(401).body("Token is invalid or expired");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body("Error validating token: " + e.getMessage());
+        }
+    }
+
 }
 
 class LoginRequest {
