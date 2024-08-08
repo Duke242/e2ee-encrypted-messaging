@@ -24,6 +24,11 @@ public class ProfileController {
     this.profileService = profileService;
   }
 
+  @GetMapping("/emails")
+  public List<String> getProfileEmails() {
+    return profileService.getProfileEmails();
+  }
+
   @GetMapping
   public List<Profile> getProfiles() {
     return profileService.getProfiles();
