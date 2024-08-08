@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { UserPlus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,8 +30,10 @@ function Signup() {
         throw new Error(data.message || 'Signup failed');
       }
       
-      console.log('Signup successful', data);
-      // Redirect to login page or automatically log the user in
+      console.log({data})
+      localStorage.setItem('token', data.token)
+      navigate('/dashboard');
+      window.location.reload();
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);

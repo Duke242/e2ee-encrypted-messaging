@@ -57,11 +57,11 @@ const AppRouter = () => {
         },
         {
           path: '/login',
-          element: <Login />
+          element: isAuthenticated ? <Navigate to="/dashboard" /> : <Login />,
         },
         {
           path: '/signup',
-          element: <Signup />
+          element: isAuthenticated ? <Navigate to="/dashboard" /> : <Signup />,
         },
         {
           path: '/dashboard',

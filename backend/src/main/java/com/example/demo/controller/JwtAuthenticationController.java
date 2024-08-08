@@ -52,35 +52,26 @@ public class JwtAuthenticationController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
-        System.out.println("Received signup request: " + signUpRequest);
 
         Optional<Profile> existingProfileOptional = profileRepository.findProfileByEmail(signUpRequest.getEmail());
-        System.out.println("Result of findProfileByEmail: " + existingProfileOptional);
-
         if (existingProfileOptional.isPresent()) {
-            System.out.println("Error: Email is already in use: " + signUpRequest.getEmail());
             return ResponseEntity
                     .badRequest()
                     .body(new MessageResponse("Error: Email is already in use!"));
         }
 
-        Profile profile = new Profile(signUpRequest.getEmail(),
-                encoder.encode(signUpRequest.getPassword()));
-        System.out.println("Creating new profile with email: " + signUpRequest.getEmail());
+        Profile profile = new Profile(signUpRequest.getEmail(), encoder.encode(signUpRequest.getPassword()));
+        Profile savedProfile = profileRepository.save(profile);
 
-        try {
-            Profile savedProfile = profileRepository.save(profile);
-            System.out.println("Saved profile: " + savedProfile);
-        } catch (Exception e) {
-            System.err.println("Error saving profile: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity
-                    .internalServerError()
-                    .body(new MessageResponse("Error occurred while registering user"));
-        }
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(signUpRequest.getEmail(), signUpRequest.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = jwtTokenUtil.generateJwtToken(authentication);
 
-        System.out.println("User registered successfully with email: " + signUpRequest.getEmail());
-        return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+        return ResponseEntity.ok(new JwtResponse(jwt,
+                savedProfile.getId(),
+                savedProfile.getEmail(),
+                savedProfile.getEmail()));
     }
 
     @PostMapping("/verify")

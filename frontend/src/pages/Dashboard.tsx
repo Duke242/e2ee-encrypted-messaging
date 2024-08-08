@@ -12,7 +12,7 @@ const Dashboard = () => {
             <ul className="flex space-x-4">
               <li><Link to="/dashboard" className="text-white hover:text-white hover:underline">Dashboard</Link></li>
               <li><Link to="/profile" className="text-white hover:text-white hover:underline">Profile</Link></li>
-              <li><a href="#logout" onClick={() => { localStorage.setItem('token',''); window.location.reload(); }} className="text-white hover:text-white hover:underline">Logout</a></li>
+              <li><a href="#logout" onClick={() => { localStorage.removeItem('token'); window.location.reload(); }} className="text-white hover:text-white hover:underline">Logout</a></li>
             </ul>
           </nav>
         </div>
