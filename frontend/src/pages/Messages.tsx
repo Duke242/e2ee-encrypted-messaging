@@ -1,72 +1,215 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react"
+import { JwtPayload, jwtDecode } from "jwt-decode"
 
 interface Message {
-  id: number;
-  senderId: number;
-  recipientId: number;
-  content: string;
-  timestamp: string;
-  isEncrypted: boolean;
+  id: number
+  senderId: number
+  recipientId: number
+  content: string
+  timestamp: string
+  isEncrypted: boolean
+  sender: {
+    email: string
+  }
+  recipient: { 
+    email: string
+   }
 }
 
 interface ConversationsData {
-  [otherUserId: string]: Message[];
+  [otherUserId: string]: Message[]
+}
+
+interface CustomJwtPayload extends JwtPayload {
+  id?: number
 }
 
 const Messages: React.FC = () => {
-  const [conversations, setConversations] = useState<ConversationsData>({});
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [conversations, setConversations] = useState<ConversationsData>({})
+  const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
+  const [userId, setUserId] = useState<number | null>()
+  const [messageContent, setMessageContent] = useState("")
+  const [selectedRecipient, setSelectedRecipient] = useState<number | null>(null)
+  const [userEmail, setUserEmail] = useState<string | null>(null)
 
-  const userId: number = 1
+  const handleSendMessage = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!messageContent || selectedRecipient === null || userId === undefined) return
+
+    try {
+      const response = await fetch("http://localhost:8080/api/messages/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          content: messageContent,
+          senderId: userId,
+          recipientId: selectedRecipient,
+        }),
+      })
+
+      if (response.ok) {
+
+        setMessageContent("")
+        setSelectedRecipient(null)
+
+      } else {
+        console.error("Failed to send message:", response.status)
+      }
+    } catch (error) {
+      console.error("Error sending message:", error)
+    }
+  }
 
   useEffect(() => {
-    const fetchConversations = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('token')
-        const response = await fetch(`http://localhost:8080/api/messages/user/${userId}/conversations`, {
-          method: "GET", 
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (!response.ok) {
-          throw new Error('Failed to fetch conversations');
+        const token = localStorage.getItem("token");
+        if (token) {
+          try {
+            const decodedToken = jwtDecode<CustomJwtPayload>(token);
+            const id = decodedToken.id ?? null;
+            const email = decodedToken.sub ?? null;
+            setUserEmail(email)
+            setUserId(id);
+
+            if (id !== null) {
+              const response = await fetch(
+                `http://localhost:8080/api/messages/user/${id}/conversations`,
+                {
+                  method: "GET",
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
+
+              if (!response.ok) {
+                throw new Error("Failed to fetch conversations");
+              }
+
+              const data: ConversationsData = await response.json();
+              console.log({d: Object.entries(data)})
+              setConversations(data);
+            }
+          } catch (error) {
+            console.error("Failed to decode token or fetch conversations:", error);
+          }
         }
-        const data: ConversationsData = await response.json();
-        console.log('Data received')
-        console.log({data});
-        setConversations(data);
-        setLoading(false);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        setError(
+          err instanceof Error ? err.message : "An unknown error occurred"
+        );
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchConversations();
-  }, [userId]);
+    fetchData();
+  }, []);
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
+  if (loading) return <div>Loading...</div>
+  if (error) return <div>{error}</div>
+
+  const recipientEmails = Object.values(conversations).flat().map(message => message.recipient.email)
+  const uniqueEmails = Array.from(new Set(recipientEmails))
 
   return (
-    <div>
-      <h1>Conversations</h1>
-      {Object.entries(conversations).map(([otherUserId, messages]) => (
-        <div key={otherUserId}>
-          <h2>Conversation with User {otherUserId}</h2>
-          {messages.map((message: Message) => (
-            <div key={message.id}>
-              <p>{message.senderId === userId ? 'You' : 'Other'}: {message.content}</p>
-              <small>{new Date(message.timestamp).toLocaleString()}</small>
+    <div className="min-h-screen bg-gray-100 text-gray-900">
+      <header className="bg-blue-600 text-white p-4">
+        <div className="container mx-auto flex justify-between items-center">
+          <h1 className="text-2xl font-bold">SecureChat</h1>
+          <nav>
+            <ul className="flex space-x-4">
+              <li>
+                <a
+                  onClick={() => {
+                    localStorage.removeItem("token")
+                    window.location.reload()
+                  }}
+                  className="text-white hover:text-white hover:underline"
+                >
+                  Log out
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+
+      <main className="w-full mx-auto mt-8 px-4">
+        <section className="text-center mb-12">
+          <h2 className="text-4xl font-bold mb-4">Your Conversations</h2>
+          <p className="text-xl mb-6">Here’s a list of your recent conversations.</p>
+        </section>
+
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {Object.entries(conversations).map(([otherUserId, messages]) => (
+            <div key={otherUserId} className="bg-white p-6 rounded-lg shadow-md hover:shadow-2xl transition mb-6">
+              <h3 className="text-2xl font-semibold mb-4">Conversation with {messages[0].recipient.email}</h3>
+              {messages.map((message: Message) => (
+                <div key={message.id} className="border-b border-gray-300 pb-4 mb-4">
+                  <p className="mb-2">
+                    <strong>{message.senderId === userId ? "You" : "Other"}:</strong> {message.content}
+                  </p>
+                  <small>{new Date(message.timestamp).toLocaleString()}</small>
+                </div>
+              ))}
             </div>
           ))}
-        </div>
-      ))}
-    </div>
-  );
-};
+        </section>
 
-export default Messages;
+        <section className="bg-white p-6 rounded-lg shadow-md mt-8">
+          <h3 className="text-xl font-semibold mb-4">Send a New Message</h3>
+          <form onSubmit={handleSendMessage}>
+            <div className="flex flex-col mb-4">
+              <label htmlFor="recipient" className="mb-2 text-gray-700">Select Recipient</label>
+              <select
+                id="recipient"
+                value={selectedRecipient ?? ""}
+                onChange={(e) => setSelectedRecipient(Number(e.target.value))}
+                className="p-2 border border-gray-300 rounded"
+              >
+                <option value="" disabled>Select a recipient</option>
+                {uniqueEmails.map((email, index) => (
+                  <option key={index} value={index + 1}>
+                    {email !== userEmail && email}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex flex-col mb-4">
+              <label htmlFor="message" className="mb-2 text-gray-700">Message</label>
+              <textarea
+                id="message"
+                value={messageContent}
+                onChange={(e) => setMessageContent(e.target.value)}
+                rows={4}
+                className="p-2 border border-gray-300 rounded"
+                placeholder="Type your message here..."
+              />
+            </div>
+            <button
+              type="submit"
+              className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition"
+            >
+              Send Message
+            </button>
+          </form>
+        </section>
+      </main>
+
+      <footer className="bg-gray-200 p-4 mt-12">
+        <div className="container mx-auto text-center">
+          <p>&copy; 2024 SecureChat. All rights reserved.</p>
+        </div>
+      </footer>
+    </div>
+  ) 
+}
+
+export default Messages
