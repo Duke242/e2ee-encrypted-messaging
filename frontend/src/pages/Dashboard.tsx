@@ -1,31 +1,34 @@
-import React, { useEffect, useState } from 'react';
-import { User, MessageCircle, LogOut } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from "react"
+import { User, MessageCircle, LogOut } from "lucide-react"
+import { Link } from "react-router-dom"
 
 const Dashboard = () => {
-  const [profileEmails, setProfileEmails] = useState([]);
+  const [profileEmails, setProfileEmails] = useState([])
 
   useEffect(() => {
     const fetchProfileEmails = async () => {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/profiles/emails', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const token = localStorage.getItem("token")
+      const response = await fetch(
+        "http://localhost:8080/api/profiles/emails",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
       if (response.ok) {
-        const emails = await response.json();
-        setProfileEmails(emails);
-        console.log({emails});
+        const emails = await response.json()
+        setProfileEmails(emails)
+        console.log({ emails })
       } else {
-        console.error('Error fetching profile emails:', response.status);
+        console.error("Error fetching profile emails:", response.status)
       }
-    };
+    }
 
-    fetchProfileEmails();
-  }, []);
-  
+    fetchProfileEmails()
+  }, [])
+
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900">
       <header className="bg-blue-600 text-white p-4">
@@ -33,32 +36,55 @@ const Dashboard = () => {
           <h1 className="text-2xl font-bold">SecureChat</h1>
           <nav>
             <ul className="flex space-x-4">
-              <li><a href="#logout" onClick={() => { localStorage.removeItem('token'); window.location.reload(); }} className="text-white hover:text-white hover:underline">Log out</a></li>
+              <li>
+                <a
+                  onClick={() => {
+                    localStorage.removeItem("token")
+                    window.location.reload()
+                  }}
+                  className="text-white hover:text-white hover:underline"
+                >
+                  Log out
+                </a>
+              </li>
             </ul>
           </nav>
         </div>
       </header>
 
+        <div>
+          {profileEmails.map((email) => (
+            <ul>{email}</ul>
+          ))}
+        </div>
+        
       <main className="w-full mx-auto mt-8 px-4">
         <section className="text-center mb-12">
           <h2 className="text-4xl font-bold mb-4">Welcome Back!</h2>
-          <p className="text-xl mb-6">Here&apos;s a summary of your recent activity.</p>
+          <p className="text-xl mb-6">
+            Here&apos;s a summary of your recent activity.
+          </p>
         </section>
-        <div>{profileEmails}</div>
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
           <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-2xl transition">
             <User className="text-blue-600 w-12 h-12 mb-4" />
-            <h3 className="text-xl font-semibold mb-2">User Profile</h3>
-            <p>View and update your profile information.</p>
-            <Link to="/profile" className="text-blue-600 hover:underline mt-4 inline-block">
-              Go to Profile
+            <h3 className="text-xl font-semibold mb-2">Find Users to Chat With</h3>
+            <p>Discover and connect with other users to start chatting.</p>
+            <Link
+              to="/find-users"
+              className="text-blue-600 hover:underline mt-4 inline-block"
+            >
+              Find Users
             </Link>
           </div>
           <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-2xl transition">
             <MessageCircle className="text-blue-600 w-12 h-12 mb-4" />
             <h3 className="text-xl font-semibold mb-2">Recent Messages</h3>
             <p>Check out your most recent messages and conversations.</p>
-            <Link to="/messages" className="text-blue-600 hover:underline mt-4 inline-block">
+            <Link
+              to="/messages"
+              className="text-blue-600 hover:underline mt-4 inline-block"
+            >
               View Messages
             </Link>
           </div>
@@ -82,7 +108,7 @@ const Dashboard = () => {
         </div>
       </footer>
     </div>
-  );
-};
+  )
+}
 
-export default Dashboard;
+export default Dashboard

@@ -4,7 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.example.demo.profile.Profile;
 import com.example.demo.profile.ProfileRepository;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class MessageService {
@@ -43,5 +48,22 @@ public class MessageService {
     sentMessages.sort((m1, m2) -> m2.getTimestamp().compareTo(m1.getTimestamp()));
 
     return sentMessages;
+  }
+
+  public Map<Long, List<Message>> getAllUserConversations(Long userId) {
+    List<Message> allUserMessages = messageRepository.findAllByUserIdInvolved(userId);
+
+    Map<Long, List<Message>> conversationsMap = new HashMap<>();
+
+    for (Message message : allUserMessages) {
+      Long otherUserId = message.getSenderId().equals(userId) ? message.getRecipientId() : message.getSenderId();
+      conversationsMap.computeIfAbsent(otherUserId, k -> new ArrayList<>()).add(message);
+    }
+
+    for (List<Message> conversation : conversationsMap.values()) {
+      conversation.sort(Comparator.comparing(Message::getTimestamp));
+    }
+
+    return conversationsMap;
   }
 }

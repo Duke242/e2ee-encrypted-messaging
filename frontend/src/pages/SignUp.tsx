@@ -29,8 +29,6 @@ function Signup() {
       if (!response.ok) {
         throw new Error(data.message || 'Signup failed');
       }
-      
-      console.log({data})
       localStorage.setItem('token', data.token)
       navigate('/dashboard');
       window.location.reload();

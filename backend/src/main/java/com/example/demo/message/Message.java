@@ -57,12 +57,20 @@ public class Message {
     this.sender = sender;
   }
 
+  public Long getSenderId() {
+    return sender != null ? sender.getId() : null;
+  }
+
   public Profile getRecipient() {
     return recipient;
   }
 
   public void setRecipient(Profile recipient) {
     this.recipient = recipient;
+  }
+
+  public Long getRecipientId() {
+    return recipient != null ? recipient.getId() : null;
   }
 
   public String getContent() {
@@ -85,8 +93,7 @@ public class Message {
     return isEncrypted;
   }
 
-  public void setEncrypted(boolean isEncrypted) {
-    this.isEncrypted = isEncrypted;
+  public void setEncrypted(boolean encrypted) {
+    isEncrypted = encrypted;
   }
-
 }

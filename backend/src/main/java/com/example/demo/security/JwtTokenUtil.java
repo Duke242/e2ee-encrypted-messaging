@@ -6,6 +6,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import com.example.demo.profile.Profile;
+
 import java.util.Date;
 
 @Component
@@ -33,7 +35,9 @@ public class JwtTokenUtil {
 
     public boolean validateJwtToken(String authToken) {
         try {
-            Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken);
+            Jws<Claims> userInfo = Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken);
+            // System.out.println("User info from the validateToken: " +
+            // userInfo.getBody().getSubject().toString());
             return true;
         } catch (SignatureException e) {
             System.out.println("Invalid JWT signature: " + e.getMessage());

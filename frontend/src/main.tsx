@@ -7,6 +7,8 @@ import ErrorPage from './pages/ErrorPage';
 import Login from './pages/Login';
 import Signup from './pages/SignUp';
 import Dashboard from './pages/Dashboard';
+import FindUsers from './pages/FindUsers';
+import Messages from './pages/Messages';
 
 
 const verifyToken = async (token: string) => {
@@ -66,7 +68,15 @@ const AppRouter = () => {
         {
           path: '/dashboard',
           element: isAuthenticated ? <Dashboard /> : <Navigate to="/login" />,
-        }
+        },
+        {
+          path: '/find-users',
+          element: isAuthenticated ? <FindUsers/> : <Navigate to="/login" />,
+        },
+        {
+          path: '/messages',
+          element: isAuthenticated ? <Messages/> : <Navigate to="/login" />,
+        },
       ])}
     />
   );
