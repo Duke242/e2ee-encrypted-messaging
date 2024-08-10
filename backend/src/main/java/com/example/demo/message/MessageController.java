@@ -4,6 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -17,24 +20,12 @@ public class MessageController {
 
   private final MessageService messageService;
 
-  @Autowired
-  public MessageController(MessageService messageService) {
-    this.messageService = messageService;
-  }
+  private final MessageRepository messageRepository;
 
-  @PostMapping
-  public ResponseEntity<?> sendMessage(@RequestParam Long senderId,
-      @RequestParam Long recipientId,
-      @RequestBody String content) {
-    try {
-      Message sentMessage = messageService.sendMessage(senderId, recipientId, content);
-      return ResponseEntity.ok(sentMessage);
-    } catch (Exception e) {
-      logger.error("Error in sendMessage", e);
-      return ResponseEntity
-          .status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(Map.of("error", e.getMessage()));
-    }
+  @Autowired
+  public MessageController(MessageService messageService, MessageRepository messageRepository) {
+    this.messageService = messageService;
+    this.messageRepository = messageRepository;
   }
 
   @GetMapping("/conversation")
@@ -53,20 +44,28 @@ public class MessageController {
 
   @GetMapping("/user/{userId}/conversations")
   public ResponseEntity<?> getAllUserConversations(@PathVariable Long userId) {
-    logger.info("Entering getAllUserConversations method with userId: {}", userId);
     try {
-      logger.info("Calling messageService.getAllUserConversations");
       Map<Long, List<Message>> conversations = messageService.getAllUserConversations(userId);
-      logger.info("Received conversations from service. Size: {}", conversations.size());
-      logger.info("Conversations: {}", conversations);
       return ResponseEntity.ok(conversations);
     } catch (Exception e) {
       logger.error("Error in getAllUserConversations", e);
       return ResponseEntity
           .status(HttpStatus.INTERNAL_SERVER_ERROR)
           .body(Map.of("error", e.getMessage()));
-    } finally {
-      logger.info("Exiting getAllUserConversations method");
+    }
+  }
+
+  @PostMapping("/send")
+  public ResponseEntity<?> createMessage(@RequestBody JsonNode requestBody) {
+    try {
+      Long userId = requestBody.get("senderId").asLong();
+      String recipientEmail = requestBody.get("recipientEmail").asText();
+      String content = requestBody.get("content").asText();
+
+      Message message = messageService.sendMessage(userId, recipientEmail, content);
+      return ResponseEntity.ok(message);
+    } catch (Exception e) {
+      return ResponseEntity.badRequest().body("Error creating message: " + e.getMessage());
     }
   }
 }

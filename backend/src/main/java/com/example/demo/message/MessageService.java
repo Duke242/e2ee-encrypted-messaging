@@ -23,10 +23,10 @@ public class MessageService {
     this.profileRepository = profileRepository;
   }
 
-  public Message sendMessage(Long senderId, Long recipientId, String content) {
+  public Message sendMessage(Long senderId, String recipientEmail, String content) {
     Profile sender = profileRepository.findById(senderId)
         .orElseThrow(() -> new IllegalArgumentException("Sender not found"));
-    Profile recipient = profileRepository.findById(recipientId)
+    Profile recipient = profileRepository.findProfileByEmail(recipientEmail)
         .orElseThrow(() -> new IllegalArgumentException("Recipient not found"));
 
     boolean isEncrypted = false;
@@ -66,4 +66,5 @@ public class MessageService {
 
     return conversationsMap;
   }
+
 }

@@ -18,4 +18,5 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
   @Query("SELECT m FROM Message m WHERE m.sender.id = :userId OR m.recipient.id = :userId ORDER BY m.timestamp")
   List<Message> findAllByUserIdInvolved(@Param("userId") Long userId);
+
 }

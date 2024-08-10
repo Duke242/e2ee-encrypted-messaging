@@ -9,6 +9,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ProfileRepository extends JpaRepository<Profile, Long> {
 
-  @Query("SELECT p FROM Profile p where p.email = ?1")
+  @Query("SELECT p FROM Profile p WHERE p.email = ?1")
   Optional<Profile> findProfileByEmail(String email);
+
+  @Query("SELECT p.id FROM Profile p WHERE p.email = ?1")
+  Optional<Long> findIdByEmail(String email);
+
 }

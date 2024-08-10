@@ -11,9 +11,9 @@ interface Message {
   sender: {
     email: string
   }
-  recipient: { 
+  recipient: {
     email: string
-   }
+  }
 }
 
 interface ConversationsData {
@@ -30,14 +30,19 @@ const Messages: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [userId, setUserId] = useState<number | null>()
   const [messageContent, setMessageContent] = useState("")
-  const [selectedRecipient, setSelectedRecipient] = useState<number | null>(null)
+  const [selectedRecipient, setSelectedRecipient] = useState<string | null>(null)
+
   const [userEmail, setUserEmail] = useState<string | null>(null)
 
   const handleSendMessage = async (event: React.FormEvent) => {
     event.preventDefault()
-    if (!messageContent || selectedRecipient === null || userId === undefined) return
+    if (!messageContent || selectedRecipient === null || userId === undefined)
+      return
 
     try {
+      console.log("Message Content: ", messageContent)
+      console.log("Selected Recipient: ", selectedRecipient)
+      console.log("User ID: ", userId)
       const response = await fetch("http://localhost:8080/api/messages/send", {
         method: "POST",
         headers: {
@@ -47,15 +52,13 @@ const Messages: React.FC = () => {
         body: JSON.stringify({
           content: messageContent,
           senderId: userId,
-          recipientId: selectedRecipient,
+          recipientEmail: selectedRecipient,
         }),
       })
 
       if (response.ok) {
-
         setMessageContent("")
         setSelectedRecipient(null)
-
       } else {
         console.error("Failed to send message:", response.status)
       }
@@ -67,15 +70,15 @@ const Messages: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
-        const token = localStorage.getItem("token");
+        setLoading(true)
+        const token = localStorage.getItem("token")
         if (token) {
           try {
-            const decodedToken = jwtDecode<CustomJwtPayload>(token);
-            const id = decodedToken.id ?? null;
-            const email = decodedToken.sub ?? null;
+            const decodedToken = jwtDecode<CustomJwtPayload>(token)
+            const id = decodedToken.id ?? null
+            const email = decodedToken.sub ?? null
             setUserEmail(email)
-            setUserId(id);
+            setUserId(id)
 
             if (id !== null) {
               const response = await fetch(
@@ -86,36 +89,41 @@ const Messages: React.FC = () => {
                     Authorization: `Bearer ${token}`,
                   },
                 }
-              );
+              )
 
               if (!response.ok) {
-                throw new Error("Failed to fetch conversations");
+                throw new Error("Failed to fetch conversations")
               }
 
-              const data: ConversationsData = await response.json();
-              console.log({d: Object.entries(data)})
-              setConversations(data);
+              const data: ConversationsData = await response.json()
+              console.log({ d: Object.entries(data) })
+              setConversations(data)
             }
           } catch (error) {
-            console.error("Failed to decode token or fetch conversations:", error);
+            console.error(
+              "Failed to decode token or fetch conversations:",
+              error
+            )
           }
         }
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "An unknown error occurred"
-        );
+        )
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchData();
-  }, []);
+    fetchData()
+  }, [])
 
   if (loading) return <div>Loading...</div>
   if (error) return <div>{error}</div>
 
-  const recipientEmails = Object.values(conversations).flat().map(message => message.recipient.email)
+  const recipientEmails = Object.values(conversations)
+    .flat()
+    .map((message) => message.recipient.email)
   const uniqueEmails = Array.from(new Set(recipientEmails))
 
   return (
@@ -144,17 +152,30 @@ const Messages: React.FC = () => {
       <main className="w-full mx-auto mt-8 px-4">
         <section className="text-center mb-12">
           <h2 className="text-4xl font-bold mb-4">Your Conversations</h2>
-          <p className="text-xl mb-6">Here’s a list of your recent conversations.</p>
+          <p className="text-xl mb-6">
+            Here&apos; a list of your recent conversations.
+          </p>
         </section>
 
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {Object.entries(conversations).map(([otherUserId, messages]) => (
-            <div key={otherUserId} className="bg-white p-6 rounded-lg shadow-md hover:shadow-2xl transition mb-6">
-              <h3 className="text-2xl font-semibold mb-4">Conversation with {messages[0].recipient.email}</h3>
+            <div
+              key={otherUserId}
+              className="bg-white p-6 rounded-lg shadow-md hover:shadow-2xl transition mb-6"
+            >
+              <h3 className="text-2xl font-semibold mb-4">
+                Conversation with {messages[0].recipient.email}
+              </h3>
               {messages.map((message: Message) => (
-                <div key={message.id} className="border-b border-gray-300 pb-4 mb-4">
+                <div
+                  key={message.id}
+                  className="border-b border-gray-300 pb-4 mb-4"
+                >
                   <p className="mb-2">
-                    <strong>{message.senderId === userId ? "You" : "Other"}:</strong> {message.content}
+                    <strong>
+                      {message.senderId === userId ? "You" : "Other"}:
+                    </strong>{" "}
+                    {message.content}
                   </p>
                   <small>{new Date(message.timestamp).toLocaleString()}</small>
                 </div>
@@ -167,23 +188,37 @@ const Messages: React.FC = () => {
           <h3 className="text-xl font-semibold mb-4">Send a New Message</h3>
           <form onSubmit={handleSendMessage}>
             <div className="flex flex-col mb-4">
-              <label htmlFor="recipient" className="mb-2 text-gray-700">Select Recipient</label>
+              <label htmlFor="recipient" className="mb-2 text-gray-700">
+                Select Recipient
+              </label>
               <select
                 id="recipient"
                 value={selectedRecipient ?? ""}
-                onChange={(e) => setSelectedRecipient(Number(e.target.value))}
+                onChange={(e) => setSelectedRecipient(e.target.value)}
                 className="p-2 border border-gray-300 rounded"
+                required
               >
-                <option value="" disabled>Select a recipient</option>
-                {uniqueEmails.map((email, index) => (
-                  <option key={index} value={index + 1}>
-                    {email !== userEmail && email}
-                  </option>
-                ))}
+                <option value="" disabled>
+                  Select a recipient
+                </option>
+                {uniqueEmails.length > 0 ? (
+                  uniqueEmails.map(
+                    (email) =>
+                      email !== userEmail && (
+                        <option key={email} value={email}>
+                          {email}
+                        </option>
+                      )
+                  )
+                ) : (
+                  <option>No emails available</option>
+                )}
               </select>
             </div>
             <div className="flex flex-col mb-4">
-              <label htmlFor="message" className="mb-2 text-gray-700">Message</label>
+              <label htmlFor="message" className="mb-2 text-gray-700">
+                Message
+              </label>
               <textarea
                 id="message"
                 value={messageContent}
@@ -191,6 +226,7 @@ const Messages: React.FC = () => {
                 rows={4}
                 className="p-2 border border-gray-300 rounded"
                 placeholder="Type your message here..."
+                required
               />
             </div>
             <button
@@ -209,7 +245,7 @@ const Messages: React.FC = () => {
         </div>
       </footer>
     </div>
-  ) 
+  )
 }
 
 export default Messages
