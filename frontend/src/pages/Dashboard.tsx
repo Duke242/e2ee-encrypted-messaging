@@ -42,7 +42,7 @@ const Dashboard = () => {
                     localStorage.removeItem("token")
                     window.location.reload()
                   }}
-                  className="text-white hover:text-white hover:underline"
+                  className="text-white hover:text-white hover:underline cursor-pointer"
                 >
                   Log out
                 </a>

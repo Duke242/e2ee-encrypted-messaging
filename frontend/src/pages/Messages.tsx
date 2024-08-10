@@ -139,7 +139,7 @@ const Messages: React.FC = () => {
                     localStorage.removeItem("token")
                     window.location.reload()
                   }}
-                  className="text-white hover:text-white hover:underline"
+                  className="text-white hover:text-white hover:underline cursor-pointer"
                 >
                   Log out
                 </a>
@@ -238,12 +238,6 @@ const Messages: React.FC = () => {
           </form>
         </section>
       </main>
-
-      <footer className="bg-gray-200 p-4 mt-12">
-        <div className="container mx-auto text-center">
-          <p>&copy; 2024 SecureChat. All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   )
 }
