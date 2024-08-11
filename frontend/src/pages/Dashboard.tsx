@@ -51,12 +51,6 @@ const Dashboard = () => {
           </nav>
         </div>
       </header>
-
-        <div>
-          {profileEmails.map((email) => (
-            <ul>{email}</ul>
-          ))}
-        </div>
         
       <main className="w-full mx-auto mt-8 px-4">
         <section className="text-center mb-12">
@@ -93,7 +87,10 @@ const Dashboard = () => {
         <section className="bg-white p-6 rounded-lg shadow-md mb-12">
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-semibold">Account Settings</h3>
-            <a href="#logout" className="text-red-600 hover:underline">
+            <a onClick={() => {
+              localStorage.removeItem("token");
+              window.location.reload();
+            }} className="text-red-600 cursor-pointer">
               <LogOut className="inline w-6 h-6 mr-2" />
               Logout
             </a>
