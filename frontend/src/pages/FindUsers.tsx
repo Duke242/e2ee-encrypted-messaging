@@ -43,11 +43,14 @@ const FindUsers: React.FC = () => {
               },
             })
 
+
+
             if (!response.ok) {
               throw new Error("Failed to fetch profiles")
             }
 
             const data: Profile[] = await response.json()
+            console.log({data})
             setProfiles(data)
           } catch (error) {
             console.error("Failed to decode token or fetch profiles:", error)
@@ -118,6 +121,8 @@ const FindUsers: React.FC = () => {
   const filteredProfiles = userId
     ? profiles.filter((profile) => profile.id !== userId)
     : profiles
+
+
 
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900">

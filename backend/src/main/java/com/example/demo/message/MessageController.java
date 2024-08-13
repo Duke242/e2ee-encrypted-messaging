@@ -20,12 +20,9 @@ public class MessageController {
 
   private final MessageService messageService;
 
-  private final MessageRepository messageRepository;
-
   @Autowired
-  public MessageController(MessageService messageService, MessageRepository messageRepository) {
+  public MessageController(MessageService messageService) {
     this.messageService = messageService;
-    this.messageRepository = messageRepository;
   }
 
   @GetMapping("/conversation")

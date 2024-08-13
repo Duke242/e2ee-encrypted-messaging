@@ -21,14 +21,20 @@ public class Message {
   @JoinColumn(name = "recipient_id", nullable = false)
   private Profile recipient;
 
-  @Column(nullable = false)
+  @Column(nullable = true)
   private String content;
 
   @Column(nullable = false)
   private LocalDateTime timestamp;
 
-  @Column(nullable = false)
+  @Column(nullable = true)
   private boolean isEncrypted;
+
+  @Column(nullable = true)
+  private byte[] encryptedContent;
+
+  @Column(nullable = true)
+  private String encryptionMetadata;
 
   public Message() {
   }
@@ -95,5 +101,21 @@ public class Message {
 
   public void setEncrypted(boolean encrypted) {
     isEncrypted = encrypted;
+  }
+
+  public byte[] getEncryptedContent() {
+    return encryptedContent;
+  }
+
+  public void setEncryptedContent(byte[] encryptedContent) {
+    this.encryptedContent = encryptedContent;
+  }
+
+  public String getEncryptionMetadata() {
+    return encryptionMetadata;
+  }
+
+  public void setEncryptionMetadata(String encryptionMetadata) {
+    this.encryptionMetadata = encryptionMetadata;
   }
 }
