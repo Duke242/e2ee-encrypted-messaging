@@ -1,6 +1,5 @@
 package com.example.demo.profile;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -8,16 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.whispersystems.libsignal.InvalidKeyException;
+import org.springframework.web.bind.annotation.*;
 
 import org.slf4j.Logger;
 
@@ -47,36 +37,74 @@ public class ProfileController {
     return ResponseEntity.ok(profiles);
   }
 
-  @PostMapping
-  public ResponseEntity<?> addNewProfile(@RequestBody Profile profile) {
+  @PutMapping("/{profileId}/public-key")
+  public ResponseEntity<?> updatePublicKey(@PathVariable Long profileId, @RequestBody String newPublicKey) {
     try {
-      profileService.addProfile(profile);
-      return ResponseEntity.status(HttpStatus.CREATED).body("Profile created successfully");
+      profileService.updatePublicKey(profileId, newPublicKey);
+      return ResponseEntity.ok("Public key updated successfully");
     } catch (IllegalStateException e) {
-      logger.warn("Attempt to create profile with existing email", e);
-      return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already exists");
-    } catch (InvalidKeyException e) {
-      logger.error("Failed to generate cryptographic keys", e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating cryptographic keys");
-    } catch (IOException e) {
-      logger.error("IO error while creating profile", e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("IO error while creating profile");
-    } catch (Exception e) {
-      logger.error("Unexpected error while creating profile", e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error occurred");
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
+  }
+
+  @GetMapping("/{profileId}/public-key")
+  public ResponseEntity<?> getPublicKey(@PathVariable Long profileId) {
+    try {
+      String publicKey = profileService.getPublicKey(profileId);
+      return ResponseEntity.ok(publicKey);
+    } catch (IllegalStateException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
   }
 
   @DeleteMapping(path = "{profileId}")
-  public void deleteProfile(@PathVariable("profileId") Long profileId) {
-    profileService.deleteProfile(profileId);
-
+  public ResponseEntity<?> deleteProfile(@PathVariable("profileId") Long profileId) {
+    try {
+      profileService.deleteProfile(profileId);
+      return ResponseEntity.ok("Profile deleted successfully");
+    } catch (IllegalStateException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
   }
 
   @PutMapping(path = "{profileId}")
-  public void updateProfile(@PathVariable("profileId") Long profileId,
+  public ResponseEntity<?> updateProfile(@PathVariable("profileId") Long profileId,
       @RequestParam(required = false) String email) {
-    profileService.updateProfile(profileId, email);
+    try {
+      profileService.updateProfile(profileId, email);
+      return ResponseEntity.ok("Profile updated successfully");
+    } catch (IllegalStateException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    }
+  }
+}
+
+class SignupRequest {
+  private String email;
+  private String password;
+  private String publicKey;
+
+  public String getEmail() {
+    return email;
   }
 
+  public void setEmail(String email) {
+    this.email = email;
+  }
+
+  public String getPassword() {
+    return password;
+  }
+
+  public void setPassword(String password) {
+    this.password = password;
+  }
+
+  public String getPublicKey() {
+    return publicKey;
+  }
+
+  public void setPublicKey(String publicKey) {
+    this.publicKey = publicKey;
+  }
 }

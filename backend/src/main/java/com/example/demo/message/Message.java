@@ -36,6 +36,9 @@ public class Message {
   @Column(nullable = true)
   private String encryptionMetadata;
 
+  @Column(nullable = true)
+  private Integer signedPreKeyId;
+
   public Message() {
   }
 
@@ -113,6 +116,14 @@ public class Message {
 
   public String getEncryptionMetadata() {
     return encryptionMetadata;
+  }
+
+  public Integer getSignedPreKeyId() {
+    return signedPreKeyId;
+  }
+
+  public void setSignedPreKeyId(Integer signedPreKeyId) {
+    this.signedPreKeyId = signedPreKeyId;
   }
 
   public void setEncryptionMetadata(String encryptionMetadata) {

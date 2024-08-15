@@ -2,19 +2,45 @@ import React, { useState } from 'react';
 import { UserPlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+async function generateKeyPair() {
+  const keyPair = await window.crypto.subtle.generateKey(
+    {
+      name: "ECDH",
+      namedCurve: "P-256",
+    },
+    true,
+    ["deriveKey", "deriveBits"]
+  );
+  
+  const publicKeyJwk = await window.crypto.subtle.exportKey("jwk", keyPair.publicKey);
+  const privateKeyJwk = await window.crypto.subtle.exportKey("jwk", keyPair.privateKey);
+  
+  return { publicKeyJwk, privateKeyJwk };
+}
+
 function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    const requestBody = { email, password };
-    console.log('Request body:', requestBody);
     
     try {
+
+      const { publicKeyJwk, privateKeyJwk } = await generateKeyPair();
+      
+      localStorage.setItem('privateKey', JSON.stringify(privateKeyJwk));
+      
+      const requestBody = { 
+        email, 
+        password,
+        publicKey: JSON.stringify(publicKeyJwk)
+      };
+      console.log('Request body:', requestBody);
+      
       const response = await fetch('http://localhost:8080/api/auth/signup', {
         method: 'POST',
         headers: {
@@ -29,7 +55,8 @@ function Signup() {
       if (!response.ok) {
         throw new Error(data.message || 'Signup failed');
       }
-      localStorage.setItem('token', data.token)
+      
+      localStorage.setItem('token', data.token);
       navigate('/dashboard');
       window.location.reload();
     } catch (err) {

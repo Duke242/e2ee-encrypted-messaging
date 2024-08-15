@@ -43,8 +43,6 @@ const FindUsers: React.FC = () => {
               },
             })
 
-
-
             if (!response.ok) {
               throw new Error("Failed to fetch profiles")
             }

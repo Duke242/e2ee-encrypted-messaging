@@ -60,7 +60,8 @@ public class JwtAuthenticationController {
                     .body(new MessageResponse("Error: Email is already in use!"));
         }
 
-        Profile profile = new Profile(signUpRequest.getEmail(), encoder.encode(signUpRequest.getPassword()));
+        Profile profile = new Profile(signUpRequest.getEmail(), encoder.encode(signUpRequest.getPassword()),
+                signUpRequest.getPublicKey());
         Profile savedProfile = profileRepository.save(profile);
 
         Authentication authentication = authenticationManager.authenticate(
@@ -71,7 +72,7 @@ public class JwtAuthenticationController {
         return ResponseEntity.ok(new JwtResponse(jwt,
                 savedProfile.getId(),
                 savedProfile.getEmail(),
-                savedProfile.getEmail()));
+                savedProfile.getPublicKey()));
     }
 
     @PostMapping("/verify")
@@ -119,6 +120,7 @@ class LoginRequest {
 class SignupRequest {
     private String email;
     private String password;
+    private String publicKey;
 
     public String getEmail() {
         return email;
@@ -134,6 +136,14 @@ class SignupRequest {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getPublicKey() {
+        return publicKey;
+    }
+
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
     }
 }
 
