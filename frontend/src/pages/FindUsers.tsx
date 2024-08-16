@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react"
 import { JwtPayload, jwtDecode } from "jwt-decode"
 import { Mail } from "lucide-react"
 import { Link } from "react-router-dom"
+import { sendMessage } from "../libs/messages"
 
 interface Profile {
   id: number
@@ -84,27 +85,18 @@ const FindUsers: React.FC = () => {
       setSending(true)
       const token = localStorage.getItem("token")
       try {
-        const response = await fetch("http://localhost:8080/api/messages/send", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            senderId: userId,
-            recipientEmail: selectedProfile.email,
-            content: messageContent,
-          }),
-        })
+        const decodedToken = token ? jwtDecode<CustomJwtPayload>(token) : null
 
-        if (response.ok) {
-          alert("Message sent successfully!")
-          handleClosePopup()
-        } else {
-          throw new Error("Failed to send message")
+        const userId = decodedToken?.id ?? null
+       console.log({id: selectedProfile.id})
+        if (userId) {
+          await sendMessage(userId.toString(), selectedProfile.email, messageContent)
+          setMessageContent("")
+          setSelectedProfile(null)
+          setError(null)
         }
       } catch (err) {
-        setError("An error occurred while sending the message.")
+        setError("An error occurred while sending the message." + err )
       } finally {
         setSending(false)
       }

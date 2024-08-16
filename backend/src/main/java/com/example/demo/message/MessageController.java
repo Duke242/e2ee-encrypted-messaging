@@ -29,19 +29,19 @@ public class MessageController {
 
   // @GetMapping("/user/{userId}/conversations")
 
-  // @PostMapping("/send")
-  // public ResponseEntity<?> createMessage(@RequestBody JsonNode requestBody) {
-  // try {
-  // Long userId = requestBody.get("senderId").asLong();
-  // String recipientEmail = requestBody.get("recipientEmail").asText();
-  // String content = requestBody.get("content").asText();
+  @PostMapping("/send")
+  public ResponseEntity<?> createMessage(@RequestBody JsonNode requestBody) {
+    try {
+      Long userId = requestBody.get("senderId").asLong();
+      String recipientEmail = requestBody.get("recipientEmail").asText();
+      String content = requestBody.get("content").asText();
 
-  // Message message = messageService.sendMessage(userId, recipientEmail,
-  // content);
-  // return ResponseEntity.ok(message);
-  // } catch (Exception e) {
-  // return ResponseEntity.badRequest().body("Error creating message: " +
-  // e.getMessage());
-  // }
-  // }
+      messageService.sendMessage(userId, recipientEmail,
+          content);
+      return ResponseEntity.ok("Sent");
+    } catch (Exception e) {
+      return ResponseEntity.badRequest().body("Error creating message: " +
+          e.getMessage());
+    }
+  }
 }

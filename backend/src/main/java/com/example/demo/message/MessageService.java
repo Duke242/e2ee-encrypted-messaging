@@ -4,24 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.whispersystems.libsignal.DuplicateMessageException;
-import org.whispersystems.libsignal.InvalidKeyIdException;
-import org.whispersystems.libsignal.InvalidMessageException;
-import org.whispersystems.libsignal.LegacyMessageException;
-import org.whispersystems.libsignal.NoSessionException;
-import org.whispersystems.libsignal.SignalProtocolAddress;
-import org.whispersystems.libsignal.protocol.CiphertextMessage;
-import org.whispersystems.libsignal.state.SignedPreKeyRecord;
 
 import com.example.demo.profile.Profile;
 import com.example.demo.profile.ProfileRepository;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class MessageService {
@@ -39,6 +24,26 @@ public class MessageService {
     this.messageRepository = messageRepository;
     this.profileRepository = profileRepository;
     this.messageConfig = messageConfig;
-
   }
+
+  public void sendMessage(Long senderId, String recipientEmail, String encryptedContent) {
+    try {
+      // Fetch sender and recipient profiles
+      Profile senderProfile = profileRepository.findById(senderId)
+          .orElseThrow(() -> new IllegalArgumentException("Invalid sender ID"));
+      Profile recipientProfile = profileRepository.findByEmail(recipientEmail)
+          .orElseThrow(() -> new IllegalArgumentException("Invalid recipient email"));
+
+      // Create and save the message
+      Message message = new Message();
+      message.setSender(senderProfile);
+      message.setRecipient(recipientProfile);
+      message.setContent(encryptedContent);
+      messageRepository.save(message);
+    } catch (Exception e) {
+      logger.error("Error sending message", e);
+      throw new RuntimeException("Error sending message", e);
+    }
+  }
+
 }

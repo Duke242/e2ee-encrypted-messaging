@@ -28,6 +28,11 @@ public class ProfileController {
     return profileService.getProfileEmails();
   }
 
+  @PostMapping("/email")
+  public Optional<String> findEmailById(@RequestBody String id) {
+    return profileService.findEmailById(id);
+  }
+
   @GetMapping
   public ResponseEntity<List<ProfileDTO>> getAllProfiles() {
     logger.info("Received request to get all profiles");
@@ -38,7 +43,7 @@ public class ProfileController {
   }
 
   @PutMapping("/{profileId}/public-key")
-  public ResponseEntity<?> updatePublicKey(@PathVariable Long profileId, @RequestBody String newPublicKey) {
+  public ResponseEntity<String> updatePublicKey(@PathVariable Long profileId, @RequestBody String newPublicKey) {
     try {
       profileService.updatePublicKey(profileId, newPublicKey);
       return ResponseEntity.ok("Public key updated successfully");

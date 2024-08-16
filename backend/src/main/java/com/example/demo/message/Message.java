@@ -5,7 +5,7 @@ import com.example.demo.profile.Profile;
 import java.time.LocalDateTime;
 
 @Entity
-@Table
+@Table(name = "messages")
 public class Message {
 
   @Id
@@ -27,27 +27,29 @@ public class Message {
   @Column(nullable = false)
   private LocalDateTime timestamp;
 
-  @Column(nullable = true)
-  private boolean isEncrypted;
-
-  @Column(nullable = true)
+  @Column(nullable = true, columnDefinition = "BYTEA")
   private byte[] encryptedContent;
 
   @Column(nullable = true)
   private String encryptionMetadata;
 
-  @Column(nullable = true)
-  private Integer signedPreKeyId;
-
   public Message() {
+    this.timestamp = LocalDateTime.now();
   }
 
-  public Message(Profile sender, Profile recipient, String content, boolean isEncrypted) {
+  public Message(Profile sender, Profile recipient, String content) {
     this.sender = sender;
     this.recipient = recipient;
     this.content = content;
     this.timestamp = LocalDateTime.now();
-    this.isEncrypted = isEncrypted;
+  }
+
+  public Message(Profile sender, Profile recipient, byte[] encryptedContent, String encryptionMetadata) {
+    this.sender = sender;
+    this.recipient = recipient;
+    this.encryptedContent = encryptedContent;
+    this.encryptionMetadata = encryptionMetadata;
+    this.timestamp = LocalDateTime.now();
   }
 
   public Long getId() {
@@ -98,14 +100,6 @@ public class Message {
     this.timestamp = timestamp;
   }
 
-  public boolean isEncrypted() {
-    return isEncrypted;
-  }
-
-  public void setEncrypted(boolean encrypted) {
-    isEncrypted = encrypted;
-  }
-
   public byte[] getEncryptedContent() {
     return encryptedContent;
   }
@@ -118,15 +112,8 @@ public class Message {
     return encryptionMetadata;
   }
 
-  public Integer getSignedPreKeyId() {
-    return signedPreKeyId;
-  }
-
-  public void setSignedPreKeyId(Integer signedPreKeyId) {
-    this.signedPreKeyId = signedPreKeyId;
-  }
-
   public void setEncryptionMetadata(String encryptionMetadata) {
     this.encryptionMetadata = encryptionMetadata;
   }
+
 }

@@ -39,6 +39,14 @@ public class ProfileService {
     return profileDTOs;
   }
 
+  public Optional<Profile> findIdByEmail(String email) {
+    return profileRepository.findByEmail(email);
+  }
+
+  public Optional<String> findEmailById(Long id) {
+    return profileRepository.findEmailById(id);
+  }
+
   public Optional<List<String>> getProfileEmails() {
     logger.info("Retrieving list of profile emails");
     return profileRepository.findAllEmails();

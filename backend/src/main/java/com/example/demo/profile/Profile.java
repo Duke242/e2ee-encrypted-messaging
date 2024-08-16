@@ -23,9 +23,6 @@ public class Profile implements UserDetails {
   @Column(columnDefinition = "TEXT")
   private String publicKey;
 
-  private int registrationId;
-  private int deviceId;
-
   public Profile() {
   }
 
@@ -105,29 +102,11 @@ public class Profile implements UserDetails {
     this.publicKey = publicKey;
   }
 
-  public int getRegistrationId() {
-    return registrationId;
-  }
-
-  public void setRegistrationId(int registrationId) {
-    this.registrationId = registrationId;
-  }
-
-  public int getDeviceId() {
-    return deviceId;
-  }
-
-  public void setDeviceId(int deviceId) {
-    this.deviceId = deviceId;
-  }
-
   @Override
   public String toString() {
     return "Profile{" +
         "id=" + id +
         ", email='" + email + '\'' +
-        ", registrationId=" + registrationId +
-        ", deviceId=" + deviceId +
         ", publicKey='" + publicKey + '\'' +
         '}';
   }

@@ -19,4 +19,10 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
   @Query("SELECT p.email FROM Profile p")
   Optional<List<String>> findAllEmails();
 
+  @Query("SELECT p FROM Profile p WHERE p.email = ?1")
+  Optional<Profile> findByEmail(String email);
+
+  @Query("SELECT p.email FROM Profile p WHERE p.id = ?1")
+  Optional<String> findEmailById(Long id);
+
 }
