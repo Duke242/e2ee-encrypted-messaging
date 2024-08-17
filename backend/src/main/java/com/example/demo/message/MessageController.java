@@ -27,7 +27,7 @@ public class MessageController {
 
   // @GetMapping("/conversation")
 
-  // @GetMapping("/user/{userId}/conversations")
+  @GetMapping("/user/{userId}/conversations")
 
   @PostMapping("/send")
   public ResponseEntity<?> createMessage(@RequestBody JsonNode requestBody) {
