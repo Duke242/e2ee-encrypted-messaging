@@ -64,7 +64,7 @@ const Messages: React.FC = () => {
               return { ...message, decryptedContent };
             } catch (error) {
               console.error('Error decrypting message:', error);
-              return { ...message, decryptedContent: <i>Message that you sent can't be seen by you.</i> };
+              return { ...message, decryptedContent: "Messages that you sent can't be seen by you." };
             }
           })
         );
