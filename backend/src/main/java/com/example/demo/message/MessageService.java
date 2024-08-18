@@ -1,5 +1,8 @@
 package com.example.demo.message;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.demo.profile.Profile;
 import com.example.demo.profile.ProfileRepository;
+import java.util.*;
 
 @Service
 public class MessageService {
@@ -26,15 +30,31 @@ public class MessageService {
     this.messageConfig = messageConfig;
   }
 
+  public Map<Long, List<Message>> getAllUserConversations(Long userId) {
+    List<Message> allUserMessages = messageRepository.findAllByUserIdInvolved(userId);
+
+    Map<Long, List<Message>> conversationsMap = new HashMap<>();
+
+    for (Message message : allUserMessages) {
+      Long otherUserId = message.getSenderId().equals(userId) ? message.getRecipientId() : message.getSenderId();
+      conversationsMap.computeIfAbsent(otherUserId, k -> new ArrayList<>()).add(message);
+    }
+
+    for (List<Message> conversation : conversationsMap.values()) {
+      conversation.sort(Comparator.comparing(Message::getTimestamp));
+    }
+
+    return conversationsMap;
+  }
+
   public void sendMessage(Long senderId, String recipientEmail, String encryptedContent) {
     try {
-      // Fetch sender and recipient profiles
+
       Profile senderProfile = profileRepository.findById(senderId)
           .orElseThrow(() -> new IllegalArgumentException("Invalid sender ID"));
       Profile recipientProfile = profileRepository.findByEmail(recipientEmail)
           .orElseThrow(() -> new IllegalArgumentException("Invalid recipient email"));
 
-      // Create and save the message
       Message message = new Message();
       message.setSender(senderProfile);
       message.setRecipient(recipientProfile);

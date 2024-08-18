@@ -74,14 +74,13 @@ export async function encryptMessage(
   }
 }
 
-// Decrypt a message from a sender
+
 export async function decryptMessage(
   senderPublicKey: string,
   encryptedMessage: string
 ): Promise<string> {
   const privateKey = await getCurrentUserPrivateKey()
-
-  // Import the sender's public key
+  console.log({senderPublicKey, encryptedMessage})
   const publicKeyObj = await window.crypto.subtle.importKey(
     "jwk",
     JSON.parse(senderPublicKey),
@@ -90,14 +89,12 @@ export async function decryptMessage(
     []
   )
 
-  // Derive a shared secret
   const sharedSecret = await window.crypto.subtle.deriveBits(
     { name: "ECDH", public: publicKeyObj },
     privateKey,
     256
   )
 
-  // Use the shared secret to decrypt the message
   const encryptedData = Uint8Array.from(atob(encryptedMessage), (c) =>
     c.charCodeAt(0)
   )
@@ -116,6 +113,7 @@ export async function decryptMessage(
   const decoder = new TextDecoder()
   return decoder.decode(decryptedData)
 }
+
 export async function fetchSenderPublicKey(): Promise<string> {
   const token = localStorage.getItem("token")
   const decodedToken = token ? jwtDecode<CustomJwtPayload>(token) : null
@@ -148,11 +146,6 @@ export async function fetchRecipientPublicKey(
   const publicKey = await response.text()
   return publicKey
 }
-
-//  @GetMapping("/email")
-// public Optional<Profile> findIdByEmail(@RequestBody String email) {
-//   return profileService.findIdByEmail(email);
-// }
 
 export async function sendMessage(
   userId: string,
@@ -198,11 +191,4 @@ export async function sendMessage(
   }
 }
 
-// Using these functions when receiving a message
-// async function receiveMessage(senderEmail: string, encryptedMessage: string): Promise<void> {
-//   const senderPublicKey = await fetchSenderPublicKey(senderEmail);
-//   const decryptedMessage = await decryptMessage(senderPublicKey, encryptedMessage);
 
-//   // Display the decrypted message in the UI
-//   displayMessage(senderEmail, decryptedMessage);
-// }

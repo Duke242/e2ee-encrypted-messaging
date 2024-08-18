@@ -1,48 +1,79 @@
-import React, { useState, useEffect } from "react"
-import { JwtPayload, jwtDecode } from "jwt-decode"
+import React, { useState, useEffect } from "react";
+import { JwtPayload, jwtDecode } from "jwt-decode";
+import { decryptMessage } from "../libs/messages";
 
 interface Message {
-  id: number
-  senderId: number
-  recipientId: number
-  content: string
-  timestamp: string
-  isEncrypted: boolean
+  id: number;
+  senderId: number;
+  recipientId: number;
+  content: string;
+  timestamp: string;
+  isEncrypted: boolean;
   sender: {
-    email: string
-  }
+    email: string;
+    publicKey: string;
+  };
   recipient: {
-    email: string
-  }
+    email: string;
+  };
+  decryptedContent?: string;
 }
 
 interface ConversationsData {
-  [otherUserId: string]: Message[]
+  [otherUserId: string]: Message[];
 }
 
 interface CustomJwtPayload extends JwtPayload {
-  id?: number
+  id?: number;
+  sub?: string;
 }
 
 const Messages: React.FC = () => {
-  const [conversations, setConversations] = useState<ConversationsData>({})
-  const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string | null>(null)
-  const [userId, setUserId] = useState<number | null>()
-  const [messageContent, setMessageContent] = useState("")
-  const [selectedRecipient, setSelectedRecipient] = useState<string | null>(null)
+  const [conversations, setConversations] = useState<ConversationsData>({});
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [messageContent, setMessageContent] = useState<string>("");
+  const [selectedRecipient, setSelectedRecipient] = useState<string | null>(null);
+  const [decryptedConversations, setDecryptedConversations] = useState<ConversationsData>({});
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
-  const [userEmail, setUserEmail] = useState<string | null>(null)
+  useEffect(() => {
+    console.log({conversations})
+    const decryptConversations = async () => {
+      const decrypted: ConversationsData = {};
+      for (const [otherUserId, messages] of Object.entries(conversations)) {
+        // console.log()
+        decrypted[otherUserId] = await Promise.all(
+          messages.map(async (message) => {
+            console.log(message.content)
+            try {
+              const decryptedContent = await decryptMessage(
+                message.sender.publicKey,
+                message.content
+              );
+              return { ...message, decryptedContent };
+            } catch (error) {
+              console.error("Error decrypting message:", error);
+              return {
+                ...message,
+                decryptedContent: "Error decrypting message",
+              };
+            }
+          })
+        );
+      }
+      setDecryptedConversations(decrypted);
+    };
+
+    decryptConversations();
+  }, [conversations]);
 
   const handleSendMessage = async (event: React.FormEvent) => {
-    event.preventDefault()
-    if (!messageContent || selectedRecipient === null || userId === undefined)
-      return
+    event.preventDefault();
+    if (!messageContent || selectedRecipient === null || userId === null) return;
 
     try {
-      console.log("Message Content: ", messageContent)
-      console.log("Selected Recipient: ", selectedRecipient)
-      console.log("User ID: ", userId)
       const response = await fetch("http://localhost:8080/api/messages/send", {
         method: "POST",
         headers: {
@@ -54,31 +85,31 @@ const Messages: React.FC = () => {
           senderId: userId,
           recipientEmail: selectedRecipient,
         }),
-      })
+      });
 
       if (response.ok) {
-        setMessageContent("")
-        setSelectedRecipient(null)
+        setMessageContent("");
+        setSelectedRecipient(null);
       } else {
-        console.error("Failed to send message:", response.status)
+        console.error("Failed to send message:", response.status);
       }
     } catch (error) {
-      console.error("Error sending message:", error)
+      console.error("Error sending message:", error);
     }
-  }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true)
-        const token = localStorage.getItem("token")
+        setLoading(true);
+        const token = localStorage.getItem("token");
         if (token) {
           try {
-            const decodedToken = jwtDecode<CustomJwtPayload>(token)
-            const id = decodedToken.id ?? null
-            const email = decodedToken.sub ?? null
-            setUserEmail(email)
-            setUserId(id)
+            const decodedToken = jwtDecode<CustomJwtPayload>(token);
+            const id = decodedToken.id ?? null;
+            const email = decodedToken.sub ?? null;
+            setUserEmail(email);
+            setUserId(id);
 
             if (id !== null) {
               const response = await fetch(
@@ -89,42 +120,42 @@ const Messages: React.FC = () => {
                     Authorization: `Bearer ${token}`,
                   },
                 }
-              )
+              );
 
               if (!response.ok) {
-                throw new Error("Failed to fetch conversations")
+                throw new Error("Failed to fetch conversations");
               }
 
-              const data: ConversationsData = await response.json()
-              console.log({ d: Object.entries(data) })
-              setConversations(data)
+              const data: ConversationsData = await response.json();
+              console.log({ d: Object.entries(data) });
+              setConversations(data);
             }
           } catch (error) {
             console.error(
               "Failed to decode token or fetch conversations:",
               error
-            )
+            );
           }
         }
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "An unknown error occurred"
-        )
+        );
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
-  if (loading) return <div>Loading...</div>
-  if (error) return <div>{error}</div>
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
 
   const recipientEmails = Object.values(conversations)
     .flat()
-    .map((message) => message.recipient.email)
-  const uniqueEmails = Array.from(new Set(recipientEmails))
+    .map((message) => message.recipient.email);
+  const uniqueEmails = Array.from(new Set(recipientEmails));
 
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900">
@@ -136,8 +167,8 @@ const Messages: React.FC = () => {
               <li>
                 <a
                   onClick={() => {
-                    localStorage.removeItem("token")
-                    window.location.reload()
+                    localStorage.removeItem("token");
+                    window.location.reload();
                   }}
                   className="text-white hover:text-white hover:underline cursor-pointer"
                 >
@@ -153,35 +184,39 @@ const Messages: React.FC = () => {
         <section className="text-center mb-12">
           <h2 className="text-4xl font-bold mb-4">Your Conversations</h2>
           <p className="text-xl mb-6">
-            Here&apos; a list of your recent conversations.
+            Here&apos;s a list of your recent conversations.
           </p>
         </section>
 
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {Object.entries(conversations).map(([otherUserId, messages]) => (
-            <div
-              key={otherUserId}
-              className="bg-white p-6 rounded-lg shadow-md hover:shadow-2xl transition mb-6"
-            >
-              <h3 className="text-2xl font-semibold mb-4">
-                Conversation with {messages[0].recipient.email}
-              </h3>
-              {messages.map((message: Message) => (
-                <div
-                  key={message.id}
-                  className="border-b border-gray-300 pb-4 mb-4"
-                >
-                  <p className="mb-2">
-                    <strong>
-                      {message.senderId === userId ? "You" : "Other"}:
-                    </strong>{" "}
-                    {message.content}
-                  </p>
-                  <small>{new Date(message.timestamp).toLocaleString()}</small>
-                </div>
-              ))}
-            </div>
-          ))}
+          {Object.entries(decryptedConversations).map(
+            ([otherUserId, messages]) => (
+              <div
+                key={otherUserId}
+                className="bg-white p-6 rounded-lg shadow-md hover:shadow-2xl transition mb-6"
+              >
+                <h3 className="text-2xl font-semibold mb-4">
+                  Conversation with {messages[0].recipient.email}
+                </h3>
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className="border-b border-gray-300 pb-4 mb-4"
+                  >
+                    <p className="mb-2">
+                      <strong>
+                        {message.senderId === userId ? "You" : "Other"}:
+                      </strong>{" "}
+                      {message.decryptedContent}
+                    </p>
+                    <small>
+                      {new Date(message.timestamp).toLocaleString()}
+                    </small>
+                  </div>
+                ))}
+              </div>
+            )
+          )}
         </section>
 
         <section className="bg-white p-6 rounded-lg shadow-md mt-8">
@@ -239,7 +274,7 @@ const Messages: React.FC = () => {
         </section>
       </main>
     </div>
-  )
-}
+  );
+};
 
-export default Messages
+export default Messages;
