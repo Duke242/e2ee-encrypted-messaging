@@ -25,21 +25,20 @@ public class ProfileController {
 
   @PostMapping("/findId")
   public ResponseEntity<?> findIdByEmail(@RequestBody FindIdRequest request) {
-      System.out.println("Attempting to find profile ID by email: " + request.getEmail());
+    System.out.println("Attempting to find profile ID by email: " + request.getEmail());
+
+    
+    Optional<Profile> profile = profileService.findIdByEmail(request.getEmail());
+
+    
+    if (profile.isPresent()) {
+      Long profileId = profile.get().getId();
+      return ResponseEntity.ok(profileId);
+    } else {
       
-      // Fetch the profile based on the email
-      Optional<Profile> profile = profileService.findIdByEmail(request.getEmail());
-  
-      // Extract the profile ID if present
-      if (profile.isPresent()) {
-          Long profileId = profile.get().getId();
-          return ResponseEntity.ok(profileId);
-      } else {
-          // Handle the case where the profile is not found
-          return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Profile not found");
-      }
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Profile not found");
+    }
   }
-  
 
   @GetMapping("/emails")
   public Optional<List<String>> getProfileEmails() {
