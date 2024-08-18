@@ -28,6 +28,15 @@ interface CustomJwtPayload extends JwtPayload {
   sub?: string;
 }
 
+interface DecryptedMessage extends Message {
+  decryptedContent: string;
+}
+
+
+interface DecryptedConversations {
+  [otherUserId: string]: DecryptedMessage[];
+}
+
 const Messages: React.FC = () => {
   const [conversations, setConversations] = useState<ConversationsData>({});
   const [loading, setLoading] = useState<boolean>(true);
@@ -39,14 +48,11 @@ const Messages: React.FC = () => {
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log({conversations})
     const decryptConversations = async () => {
-      const decrypted: ConversationsData = {};
+      const decrypted: DecryptedConversations = {};
       for (const [otherUserId, messages] of Object.entries(conversations)) {
-        // console.log()
         decrypted[otherUserId] = await Promise.all(
           messages.map(async (message) => {
-            console.log(message.content)
             try {
               const decryptedContent = await decryptMessage(
                 message.sender.publicKey,
@@ -54,11 +60,8 @@ const Messages: React.FC = () => {
               );
               return { ...message, decryptedContent };
             } catch (error) {
-              console.error("Error decrypting message:", error);
-              return {
-                ...message,
-                decryptedContent: "Error decrypting message",
-              };
+              console.error('Error decrypting message:', error);
+              return { ...message, decryptedContent: 'Error decrypting message' };
             }
           })
         );
@@ -68,6 +71,7 @@ const Messages: React.FC = () => {
 
     decryptConversations();
   }, [conversations]);
+
 
   const handleSendMessage = async (event: React.FormEvent) => {
     event.preventDefault();

@@ -31,47 +31,53 @@ export async function encryptMessage(
   recipientPublicKey: string,
   message: string
 ): Promise<string> {
-  try {
-    const privateKey = await getCurrentUserPrivateKey()
-    console.log('Private key retrieved successfully')
+  const privateKey = await getCurrentUserPrivateKey();
 
-    const publicKeyObj = await window.crypto.subtle.importKey(
-      "jwk",
-      JSON.parse(recipientPublicKey),
-      { name: "ECDH", namedCurve: "P-256" },
-      false,
-      []
-    )
-    console.log('Recipient public key imported successfully')
-    const sharedSecret = await window.crypto.subtle.deriveBits(
-      { name: "ECDH", public: publicKeyObj },
-      privateKey,
-      256
-    )
-    console.log('Shared secret derived successfully')
+  // Import the recipient's public key
+  const publicKeyObj = await window.crypto.subtle.importKey(
+    "jwk",
+    JSON.parse(recipientPublicKey),
+    { name: "ECDH", namedCurve: "P-256" },
+    false,
+    []
+  );
 
-    const encoder = new TextEncoder()
-    const encodedMessage = encoder.encode(message)
+  // Derive a shared secret
+  const sharedSecret = await window.crypto.subtle.deriveBits(
+    { name: "ECDH", public: publicKeyObj },
+    privateKey,
+    256
+  );
 
-    const encryptedData = await window.crypto.subtle.encrypt(
-      { name: "AES-GCM", iv: window.crypto.getRandomValues(new Uint8Array(12)) },
-      await window.crypto.subtle.importKey(
-        "raw",
-        sharedSecret,
-        { name: "AES-GCM" },
-        false,
-        ["encrypt"]
-      ),
-      encodedMessage
-    )
+  // Use the shared secret to encrypt the message
+  const encoder = new TextEncoder();
+  const encodedMessage = encoder.encode(message);
 
-    return btoa(
-      String.fromCharCode.apply(null, Array.from(new Uint8Array(encryptedData)))
-    )
-  } catch (error) {
-    console.error("An error occurred while encrypting the message:", error)
-    throw error
-  }
+  // Generate a random IV
+  const iv = window.crypto.getRandomValues(new Uint8Array(12));
+
+  // Derive an AES key from the shared secret
+  const aesKey = await window.crypto.subtle.importKey(
+    "raw",
+    sharedSecret,
+    { name: "AES-GCM" },
+    false,
+    ["encrypt"]
+  );
+
+  const encryptedData = await window.crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: iv },
+    aesKey,
+    encodedMessage
+  );
+
+  // Combine IV and encrypted data
+  const result = new Uint8Array(iv.length + new Uint8Array(encryptedData).length);
+  result.set(iv);
+  result.set(new Uint8Array(encryptedData), iv.length);
+
+  // Convert to base64 for easy storage/transmission
+  return btoa(String.fromCharCode.apply(null, Array.from(result)));
 }
 
 
@@ -79,41 +85,59 @@ export async function decryptMessage(
   senderPublicKey: string,
   encryptedMessage: string
 ): Promise<string> {
-  const privateKey = await getCurrentUserPrivateKey()
-  console.log({senderPublicKey, encryptedMessage})
-  const publicKeyObj = await window.crypto.subtle.importKey(
-    "jwk",
-    JSON.parse(senderPublicKey),
-    { name: "ECDH", namedCurve: "P-256" },
-    false,
-    []
-  )
+  try {
+    console.log('Encrypted message:', encryptedMessage);
+    const privateKey = await getCurrentUserPrivateKey();
 
-  const sharedSecret = await window.crypto.subtle.deriveBits(
-    { name: "ECDH", public: publicKeyObj },
-    privateKey,
-    256
-  )
+    // Import the sender's public key
+    const publicKeyObj = await window.crypto.subtle.importKey(
+      "jwk",
+      JSON.parse(senderPublicKey),
+      { name: "ECDH", namedCurve: "P-256" },
+      false,
+      []
+    );
 
-  const encryptedData = Uint8Array.from(atob(encryptedMessage), (c) =>
-    c.charCodeAt(0)
-  )
-  const decryptedData = await window.crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: encryptedData.slice(0, 12) },
-    await window.crypto.subtle.importKey(
+    // Derive a shared secret
+    const sharedSecret = await window.crypto.subtle.deriveBits(
+      { name: "ECDH", public: publicKeyObj },
+      privateKey,
+      256
+    );
+
+    // Decode the base64 encoded encrypted message
+    const encryptedData = Uint8Array.from(atob(encryptedMessage), (c) => c.charCodeAt(0));
+    console.log('Decoded encrypted data length:', encryptedData.length);
+
+    // Extract IV and ciphertext
+    const iv = encryptedData.slice(0, 12);
+    const ciphertext = encryptedData.slice(12);
+
+    console.log('IV length:', iv.length);
+    console.log('Ciphertext length:', ciphertext.length);
+
+    // Derive an AES key from the shared secret
+    const aesKey = await window.crypto.subtle.importKey(
       "raw",
       sharedSecret,
       { name: "AES-GCM" },
       false,
       ["decrypt"]
-    ),
-    encryptedData.slice(12)
-  )
+    );
 
-  const decoder = new TextDecoder()
-  return decoder.decode(decryptedData)
+    const decryptedData = await window.crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: iv },
+      aesKey,
+      ciphertext
+    );
+
+    const decoder = new TextDecoder();
+    return decoder.decode(decryptedData);
+  } catch (error) {
+    console.error('Decryption error:', error);
+    throw error;
+  }
 }
-
 export async function fetchSenderPublicKey(): Promise<string> {
   const token = localStorage.getItem("token")
   const decodedToken = token ? jwtDecode<CustomJwtPayload>(token) : null
