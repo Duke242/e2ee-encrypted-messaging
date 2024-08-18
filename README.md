@@ -1,12 +1,12 @@
-# Signal Protocol Encrypted Messenger
+# End-to-End Encrypted Messenger
 
 ## Overview
 
-Signal Protocol Encrypted Messenger provides secure, end-to-end encrypted messaging using the Signal Protocol, ensuring privacy and security in your communications.
+End-to-End Encrypted Messenger provides secure, end-to-end encrypted messaging ensuring privacy and security in your communications.
 
 ## Features
 
-- **End-to-End Encryption:** Secure messaging with the Signal Protocol.
+- **End-to-End Encryption:** Secure messaging with encryption.
 - **User Authentication:** Secure sign-in and identity management.
 
 ## Technologies
