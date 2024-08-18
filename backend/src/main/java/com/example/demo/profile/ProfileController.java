@@ -23,6 +23,24 @@ public class ProfileController {
     this.profileService = profileService;
   }
 
+  @PostMapping("/findId")
+  public ResponseEntity<?> findIdByEmail(@RequestBody FindIdRequest request) {
+      System.out.println("Attempting to find profile ID by email: " + request.getEmail());
+      
+      // Fetch the profile based on the email
+      Optional<Profile> profile = profileService.findIdByEmail(request.getEmail());
+  
+      // Extract the profile ID if present
+      if (profile.isPresent()) {
+          Long profileId = profile.get().getId();
+          return ResponseEntity.ok(profileId);
+      } else {
+          // Handle the case where the profile is not found
+          return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Profile not found");
+      }
+  }
+  
+
   @GetMapping("/emails")
   public Optional<List<String>> getProfileEmails() {
     return profileService.getProfileEmails();
@@ -30,7 +48,12 @@ public class ProfileController {
 
   @PostMapping("/email")
   public Optional<String> findEmailById(@RequestBody String id) {
-    return profileService.findEmailById(id);
+    try {
+      Long numericId = Long.parseLong(id);
+      return profileService.findEmailById(numericId);
+    } catch (NumberFormatException e) {
+      return Optional.empty();
+    }
   }
 
   @GetMapping
@@ -84,6 +107,18 @@ public class ProfileController {
   }
 }
 
+class FindIdRequest {
+  private String email;
+
+  public String getEmail() {
+    return email;
+  }
+
+  public void setEmail(String email) {
+    this.email = email;
+  }
+}
+
 class SignupRequest {
   private String email;
   private String password;
@@ -112,4 +147,5 @@ class SignupRequest {
   public void setPublicKey(String publicKey) {
     this.publicKey = publicKey;
   }
+
 }

@@ -39,7 +39,8 @@ const Dashboard = () => {
               <li>
                 <a
                   onClick={() => {
-                    localStorage.removeItem("token")
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("privateKey");
                     window.location.reload()
                   }}
                   className="text-white hover:text-white hover:underline cursor-pointer"
@@ -89,6 +90,7 @@ const Dashboard = () => {
             <h3 className="text-xl font-semibold">Account Settings</h3>
             <a onClick={() => {
               localStorage.removeItem("token");
+              localStorage.removeItem("privateKey");
               window.location.reload();
             }} className="text-red-600 cursor-pointer">
               <LogOut className="inline w-6 h-6 mr-2" />

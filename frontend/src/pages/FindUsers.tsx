@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react"
 import { JwtPayload, jwtDecode } from "jwt-decode"
 import { Mail } from "lucide-react"
 import { Link } from "react-router-dom"
-import { sendMessage } from "../libs/messages"
+import { sendMessage } from "../libs/crypto"
 
 interface Profile {
   id: number
@@ -86,9 +86,7 @@ const FindUsers: React.FC = () => {
       const token = localStorage.getItem("token")
       try {
         const decodedToken = token ? jwtDecode<CustomJwtPayload>(token) : null
-
         const userId = decodedToken?.id ?? null
-       console.log({id: selectedProfile.id})
         if (userId) {
           await sendMessage(userId.toString(), selectedProfile.email, messageContent)
           setMessageContent("")
@@ -112,8 +110,6 @@ const FindUsers: React.FC = () => {
     ? profiles.filter((profile) => profile.id !== userId)
     : profiles
 
-
-
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900">
       <header className="bg-blue-600 text-white p-4">
@@ -124,7 +120,8 @@ const FindUsers: React.FC = () => {
               <li>
                 <a
                   onClick={() => {
-                    localStorage.removeItem("token")
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("privateKey");
                     window.location.reload()
                   }}
                   className="text-white hover:text-white hover:underline cursor-pointer"

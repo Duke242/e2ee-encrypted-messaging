@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { JwtPayload, jwtDecode } from "jwt-decode";
-import { decryptMessage } from "../libs/messages";
+import { decryptMessage, sendMessage } from "../libs/crypto";
+import { toast } from 'react-hot-toast';
 
 interface Message {
   id: number;
@@ -15,6 +16,7 @@ interface Message {
   };
   recipient: {
     email: string;
+    publicKey: string;
   };
   decryptedContent?: string;
 }
@@ -53,6 +55,7 @@ const Messages: React.FC = () => {
       for (const [otherUserId, messages] of Object.entries(conversations)) {
         decrypted[otherUserId] = await Promise.all(
           messages.map(async (message) => {
+            console.log({message})
             try {
               const decryptedContent = await decryptMessage(
                 message.sender.publicKey,
@@ -61,7 +64,7 @@ const Messages: React.FC = () => {
               return { ...message, decryptedContent };
             } catch (error) {
               console.error('Error decrypting message:', error);
-              return { ...message, decryptedContent: 'Error decrypting message' };
+              return { ...message, decryptedContent: <i>Message that you sent can't be seen by you.</i> };
             }
           })
         );
@@ -78,24 +81,14 @@ const Messages: React.FC = () => {
     if (!messageContent || selectedRecipient === null || userId === null) return;
 
     try {
-      const response = await fetch("http://localhost:8080/api/messages/send", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          content: messageContent,
-          senderId: userId,
-          recipientEmail: selectedRecipient,
-        }),
-      });
-
-      if (response.ok) {
-        setMessageContent("");
-        setSelectedRecipient(null);
-      } else {
-        console.error("Failed to send message:", response.status);
+      const token = localStorage.getItem("token")
+      const decodedToken = token ? jwtDecode<CustomJwtPayload>(token) : null
+      console.log({selectedRecipient})
+      const userId = decodedToken?.id ?? null
+      if (userId) {
+        await sendMessage(userId.toString(), selectedRecipient, messageContent)
+        setMessageContent('')
+        toast.success('Your message was sent')
       }
     } catch (error) {
       console.error("Error sending message:", error);
@@ -131,7 +124,6 @@ const Messages: React.FC = () => {
               }
 
               const data: ConversationsData = await response.json();
-              console.log({ d: Object.entries(data) });
               setConversations(data);
             }
           } catch (error) {
@@ -172,6 +164,7 @@ const Messages: React.FC = () => {
                 <a
                   onClick={() => {
                     localStorage.removeItem("token");
+                    localStorage.removeItem("privateKey");
                     window.location.reload();
                   }}
                   className="text-white hover:text-white hover:underline cursor-pointer"

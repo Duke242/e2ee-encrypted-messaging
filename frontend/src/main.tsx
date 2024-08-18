@@ -9,6 +9,7 @@ import Signup from './pages/SignUp';
 import Dashboard from './pages/Dashboard';
 import FindUsers from './pages/FindUsers';
 import Messages from './pages/Messages';
+import { Toaster } from 'react-hot-toast';
 
 
 const verifyToken = async (token: string) => {
@@ -83,7 +84,9 @@ const AppRouter = () => {
 };
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
+  
   <React.StrictMode>
+    <Toaster></Toaster>
     <AppRouter />
   </React.StrictMode>
 );
