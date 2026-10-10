@@ -14,6 +14,9 @@ import com.example.demo.profile.ProfileRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jakarta.annotation.PostConstruct;
+
+import java.util.Base64;
 import java.util.Date;
 import java.util.Optional;
 
@@ -30,6 +33,23 @@ public class JwtTokenUtil {
 
     @Value("${jwt.expirationMs}")
     private int jwtExpirationMs;
+
+    /** Fails startup with a clear message instead of signing tokens with a missing or weak key. */
+    @PostConstruct
+    void validateSecret() {
+        if (jwtSecret == null || jwtSecret.isBlank()) {
+            throw new IllegalStateException("JWT_SECRET is not set. Generate one with: openssl rand -base64 64");
+        }
+        byte[] key;
+        try {
+            key = Base64.getDecoder().decode(jwtSecret);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("JWT_SECRET must be base64-encoded", e);
+        }
+        if (key.length < 64) {
+            throw new IllegalStateException("JWT_SECRET must decode to at least 64 bytes for HS512, got " + key.length);
+        }
+    }
 
     public String generateJwtToken(Authentication authentication) {
         UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();

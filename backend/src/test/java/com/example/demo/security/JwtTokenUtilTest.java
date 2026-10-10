@@ -93,4 +93,28 @@ class JwtTokenUtilTest {
         assertThatThrownBy(() -> jwtTokenUtil.generateJwtToken(authFor(ghost)))
                 .isInstanceOf(UsernameNotFoundException.class);
     }
+
+    @Test
+    void startupFailsWithoutASecret() {
+        ReflectionTestUtils.setField(jwtTokenUtil, "jwtSecret", "");
+
+        assertThatThrownBy(() -> jwtTokenUtil.validateSecret())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("JWT_SECRET");
+    }
+
+    @Test
+    void startupFailsWithAShortSecret() {
+        // base64 of "too-short", 9 bytes; HS512 needs at least 64.
+        ReflectionTestUtils.setField(jwtTokenUtil, "jwtSecret", "dG9vLXNob3J0");
+
+        assertThatThrownBy(() -> jwtTokenUtil.validateSecret())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("64 bytes");
+    }
+
+    @Test
+    void startupAcceptsAStrongSecret() {
+        jwtTokenUtil.validateSecret();
+    }
 }
