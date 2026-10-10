@@ -47,6 +47,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/test/all").permitAll()
                         .requestMatchers("/actuator/health/**").permitAll()
+                        // Let error responses (403, 404, ...) render instead of becoming 401.
+                        .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated())
                 // Missing or invalid credentials are 401, not the default 403.
                 .exceptionHandling(ex -> ex
