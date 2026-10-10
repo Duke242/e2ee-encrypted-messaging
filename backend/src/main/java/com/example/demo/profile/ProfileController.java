@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import com.example.demo.security.CurrentUser;
 import org.springframework.web.bind.annotation.*;
 
 import org.slf4j.Logger;
@@ -65,7 +67,10 @@ public class ProfileController {
   }
 
   @PutMapping("/{profileId}/public-key")
-  public ResponseEntity<String> updatePublicKey(@PathVariable Long profileId, @RequestBody String newPublicKey) {
+  public ResponseEntity<String> updatePublicKey(@PathVariable Long profileId, @RequestBody String newPublicKey,
+      Authentication authentication) {
+    // Swapping someone else's public key would let an attacker read their new messages.
+    CurrentUser.requireSelf(authentication, profileId);
     try {
       profileService.updatePublicKey(profileId, newPublicKey);
       return ResponseEntity.ok("Public key updated successfully");
@@ -85,7 +90,8 @@ public class ProfileController {
   }
 
   @DeleteMapping(path = "{profileId}")
-  public ResponseEntity<?> deleteProfile(@PathVariable("profileId") Long profileId) {
+  public ResponseEntity<?> deleteProfile(@PathVariable("profileId") Long profileId, Authentication authentication) {
+    CurrentUser.requireSelf(authentication, profileId);
     try {
       profileService.deleteProfile(profileId);
       return ResponseEntity.ok("Profile deleted successfully");
@@ -96,7 +102,8 @@ public class ProfileController {
 
   @PutMapping(path = "{profileId}")
   public ResponseEntity<?> updateProfile(@PathVariable("profileId") Long profileId,
-      @RequestParam(required = false) String email) {
+      @RequestParam(required = false) String email, Authentication authentication) {
+    CurrentUser.requireSelf(authentication, profileId);
     try {
       profileService.updateProfile(profileId, email);
       return ResponseEntity.ok("Profile updated successfully");

@@ -11,11 +11,19 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import com.example.demo.profile.Profile;
 import com.example.demo.profile.ProfileRepository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import jakarta.annotation.PostConstruct;
+
+import java.util.Base64;
 import java.util.Date;
 import java.util.Optional;
 
 @Component
 public class JwtTokenUtil {
+
+    private static final Logger logger = LoggerFactory.getLogger(JwtTokenUtil.class);
 
     @Autowired
     private ProfileRepository profileRepository;
@@ -25,6 +33,23 @@ public class JwtTokenUtil {
 
     @Value("${jwt.expirationMs}")
     private int jwtExpirationMs;
+
+    /** Fails startup with a clear message instead of signing tokens with a missing or weak key. */
+    @PostConstruct
+    void validateSecret() {
+        if (jwtSecret == null || jwtSecret.isBlank()) {
+            throw new IllegalStateException("JWT_SECRET is not set. Generate one with: openssl rand -base64 64");
+        }
+        byte[] key;
+        try {
+            key = Base64.getDecoder().decode(jwtSecret);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("JWT_SECRET must be base64-encoded", e);
+        }
+        if (key.length < 64) {
+            throw new IllegalStateException("JWT_SECRET must decode to at least 64 bytes for HS512, got " + key.length);
+        }
+    }
 
     public String generateJwtToken(Authentication authentication) {
         UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();
@@ -54,15 +79,15 @@ public class JwtTokenUtil {
             Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken);
             return true;
         } catch (SignatureException e) {
-            System.out.println("Invalid JWT signature: " + e.getMessage());
+            logger.debug("Invalid JWT signature: {}", e.getMessage());
         } catch (MalformedJwtException e) {
-            System.out.println("Invalid JWT token: " + e.getMessage());
+            logger.debug("Invalid JWT token: {}", e.getMessage());
         } catch (ExpiredJwtException e) {
-            System.out.println("JWT token is expired: " + e.getMessage());
+            logger.debug("JWT token is expired: {}", e.getMessage());
         } catch (UnsupportedJwtException e) {
-            System.out.println("JWT token is unsupported: " + e.getMessage());
+            logger.debug("JWT token is unsupported: {}", e.getMessage());
         } catch (IllegalArgumentException e) {
-            System.out.println("JWT claims string is empty: " + e.getMessage());
+            logger.debug("JWT claims string is empty: {}", e.getMessage());
         }
         return false;
     }

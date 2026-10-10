@@ -18,16 +18,12 @@ public class MessageService {
   private final MessageRepository messageRepository;
   private final ProfileRepository profileRepository;
 
-  private final MessageConfig messageConfig;
-
-  private static final Logger logger = LoggerFactory.getLogger(MessageConfig.class);
+  private static final Logger logger = LoggerFactory.getLogger(MessageService.class);
 
   @Autowired
-  public MessageService(MessageRepository messageRepository, ProfileRepository profileRepository,
-      MessageConfig messageConfig) {
+  public MessageService(MessageRepository messageRepository, ProfileRepository profileRepository) {
     this.messageRepository = messageRepository;
     this.profileRepository = profileRepository;
-    this.messageConfig = messageConfig;
   }
 
   public Map<Long, List<Message>> getAllUserConversations(Long userId) {
@@ -48,22 +44,17 @@ public class MessageService {
   }
 
   public void sendMessage(Long senderId, String recipientEmail, String encryptedContent) {
-    try {
+    Profile senderProfile = profileRepository.findById(senderId)
+        .orElseThrow(() -> new IllegalArgumentException("Invalid sender ID"));
+    Profile recipientProfile = profileRepository.findByEmail(recipientEmail)
+        .orElseThrow(() -> new IllegalArgumentException("Invalid recipient email"));
 
-      Profile senderProfile = profileRepository.findById(senderId)
-          .orElseThrow(() -> new IllegalArgumentException("Invalid sender ID"));
-      Profile recipientProfile = profileRepository.findByEmail(recipientEmail)
-          .orElseThrow(() -> new IllegalArgumentException("Invalid recipient email"));
-
-      Message message = new Message();
-      message.setSender(senderProfile);
-      message.setRecipient(recipientProfile);
-      message.setContent(encryptedContent);
-      messageRepository.save(message);
-    } catch (Exception e) {
-      logger.error("Error sending message", e);
-      throw new RuntimeException("Error sending message", e);
-    }
+    Message message = new Message();
+    message.setSender(senderProfile);
+    message.setRecipient(recipientProfile);
+    message.setContent(encryptedContent);
+    messageRepository.save(message);
+    logger.debug("Stored message {} -> {}", senderId, recipientProfile.getId());
   }
 
 }

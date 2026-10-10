@@ -1,5 +1,6 @@
 package com.example.demo.profile;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -18,6 +19,8 @@ public class Profile implements UserDetails {
   private Long id;
 
   private String email;
+  // Never serialized: profiles are embedded in message JSON.
+  @JsonIgnore
   private String password;
 
   @Column(columnDefinition = "TEXT")
@@ -45,6 +48,7 @@ public class Profile implements UserDetails {
   }
 
   @Override
+  @JsonIgnore
   public String getPassword() {
     return password;
   }
