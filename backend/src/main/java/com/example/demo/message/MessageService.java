@@ -18,16 +18,12 @@ public class MessageService {
   private final MessageRepository messageRepository;
   private final ProfileRepository profileRepository;
 
-  private final MessageConfig messageConfig;
-
-  private static final Logger logger = LoggerFactory.getLogger(MessageConfig.class);
+  private static final Logger logger = LoggerFactory.getLogger(MessageService.class);
 
   @Autowired
-  public MessageService(MessageRepository messageRepository, ProfileRepository profileRepository,
-      MessageConfig messageConfig) {
+  public MessageService(MessageRepository messageRepository, ProfileRepository profileRepository) {
     this.messageRepository = messageRepository;
     this.profileRepository = profileRepository;
-    this.messageConfig = messageConfig;
   }
 
   public Map<Long, List<Message>> getAllUserConversations(Long userId) {
