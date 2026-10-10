@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { JwtPayload, jwtDecode } from "jwt-decode"
 import { Mail } from "lucide-react"
-import { Link } from "react-router-dom"
 import { sendMessage } from "../libs/crypto"
 
 interface Profile {

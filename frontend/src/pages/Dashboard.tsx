@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { User, MessageCircle, LogOut } from "lucide-react"
 import { Link } from "react-router-dom"
 
 const Dashboard = () => {
-  const [profileEmails, setProfileEmails] = useState([])
+  const [, setProfileEmails] = useState([])
 
   useEffect(() => {
     const fetchProfileEmails = async () => {
