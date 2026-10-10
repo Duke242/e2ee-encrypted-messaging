@@ -3,6 +3,8 @@ package com.example.demo.message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import com.example.demo.security.CurrentUser;
 import org.springframework.web.bind.annotation.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -28,7 +30,8 @@ public class MessageController {
   // @GetMapping("/conversation")
 
   @GetMapping("/user/{userId}/conversations")
-  public ResponseEntity<?> getAllUserConversations(@PathVariable Long userId) {
+  public ResponseEntity<?> getAllUserConversations(@PathVariable Long userId, Authentication authentication) {
+    CurrentUser.requireSelf(authentication, userId);
     try {
       Map<Long, List<Message>> conversations = messageService.getAllUserConversations(userId);
       return ResponseEntity.ok(conversations);
@@ -41,9 +44,10 @@ public class MessageController {
   }
 
   @PostMapping("/send")
-  public ResponseEntity<?> createMessage(@RequestBody JsonNode requestBody) {
+  public ResponseEntity<?> createMessage(@RequestBody JsonNode requestBody, Authentication authentication) {
+    // The sender is whoever the token belongs to. Any "senderId" in the body is ignored.
+    Long userId = CurrentUser.id(authentication);
     try {
-      Long userId = requestBody.get("senderId").asLong();
       String recipientEmail = requestBody.get("recipientEmail").asText();
       String content = requestBody.get("content").asText();
 
