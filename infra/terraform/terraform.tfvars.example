@@ -1,0 +1,5 @@
+project_id           = "your-project-id"
+region               = "us-central1"
+billing_account_id   = "XXXXXX-XXXXXX-XXXXXX" # optional: enables the budget alert
+monthly_budget_usd   = 15
+cors_allowed_origins = "http://localhost:5173"
